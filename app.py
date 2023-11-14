@@ -1,4 +1,4 @@
-from flask import Flask, url_for, render_template, redirect, request, sessions, session
+from flask import Flask, url_for, render_template, redirect, request, session
 from flask_mysqldb import MySQL
 from flask_login import current_user
 import mysql.connector
@@ -31,9 +31,12 @@ def index():
     else:
         username = None  
 
-    if 'user_id' not in session:
+    if 'username' not in session:
+
+        print(">>>>>> HOME RED", session)
         # User is not logged in, redirect them to the login page
         return redirect(url_for('login'))
+
 
     return render_template("index.html", post=data, username=username)
 
@@ -44,10 +47,11 @@ def insert():
     if request.method == "POST":
 
         caption = request.form['caption']
-
+        image = request.form['image']
         cur = mysql.connection.cursor()
-        cur.execute("INSERT INTO post(caption) VALUES(%s)", (caption,))
+        cur.execute("INSERT INTO post (caption, image) VALUES ('%s', '%s')" % (caption, image),)
         mysql.connection.commit()
+
         return redirect(url_for('index'))
     
 @app.route('/update',methods=['GET', 'POST'])
@@ -84,10 +88,22 @@ def edit(id_data):
         cur.execute(sql)
         mysql.connection.commit()
     return render_template('edit.html', item = item)
-    
+
+# @app.route('/upvote/<int:id>')
+# def upvote(id):
+#     if request.method == 'POST':
+#         post_id = request.form['id']
+#         cur = mysql.connection.cursor(dictionary=True)
+#         cur.execute("UPDATE posts SET upvotes = upvotes + 1 WHERE id = %s", (id,))
+#         cur.close()
+#         return redirect(url_for('index', post_id= post_id))
+
 @app.route('/login', methods=['GET', 'POST'])
 def login():
-    if 'user_id' in session:
+    if 'username' in session:
+        
+
+        print(">>>>>> user in sess")
         return redirect(url_for('index'))
     
     if request.method == 'POST':
@@ -100,7 +116,8 @@ def login():
         cur.close()
         
         if user and password == user['password']:
-            session['user_id'] = user['id']
+            session['username'] = user['username']
+            print(">>>>>> user in 120")
             return redirect(url_for('index'))
         else:
             return render_template('login.html', error="Invalid Username or Password")
@@ -110,7 +127,7 @@ def login():
 
 @app.route('/signup', methods=['GET', 'POST'])
 def signup():
-    if 'user_id' in session:
+    if 'username' in session:
         return redirect(url_for('index'))
     if request.method == "POST":
         name = request.form['name']
@@ -143,4 +160,4 @@ def logout():
     return redirect(url_for('login'))
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(debug=True, port = 8080)
