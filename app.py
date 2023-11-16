@@ -1,6 +1,6 @@
 from flask import Flask, url_for, render_template, redirect, request, session
+from flask_login import login_user, current_user, logout_user, login_required
 from flask_mysqldb import MySQL
-from flask_login import current_user
 import mysql.connector
 
 app = Flask(__name__)
@@ -16,8 +16,6 @@ app.config["MYSQL_CURSORCLASS"] = "DictCursor"
 
 
 mysql = MySQL(app)
-# login_manage = LoginManager()
-# login_manage.init_app(app)
 
 @app.route("/")
 def index():
@@ -32,8 +30,6 @@ def index():
         username = None  
 
     if 'username' not in session:
-
-        print(">>>>>> HOME RED", session)
         # User is not logged in, redirect them to the login page
         return redirect(url_for('login'))
 
@@ -89,21 +85,17 @@ def edit(id_data):
         mysql.connection.commit()
     return render_template('edit.html', item = item)
 
-# @app.route('/upvote/<int:id>')
-# def upvote(id):
-#     if request.method == 'POST':
-#         post_id = request.form['id']
-#         cur = mysql.connection.cursor(dictionary=True)
-#         cur.execute("UPDATE posts SET upvotes = upvotes + 1 WHERE id = %s", (id,))
-#         cur.close()
-#         return redirect(url_for('index', post_id= post_id))
+@app.route('/profile', methods = ['GET', 'POST'])
+def profile():
+    if 'username' not in session:
+        # User is not logged in, redirect them to the login page
+        return redirect(url_for('login'))
+
+    return render_template('profile.html')
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if 'username' in session:
-        
-
-        print(">>>>>> user in sess")
         return redirect(url_for('index'))
     
     if request.method == 'POST':
@@ -117,7 +109,6 @@ def login():
         
         if user and password == user['password']:
             session['username'] = user['username']
-            print(">>>>>> user in 120")
             return redirect(url_for('index'))
         else:
             return render_template('login.html', error="Invalid Username or Password")
@@ -160,4 +151,4 @@ def logout():
     return redirect(url_for('login'))
 
 if __name__ == "__main__":
-    app.run(debug=True, port = 8080)
+    app.run(debug=True)

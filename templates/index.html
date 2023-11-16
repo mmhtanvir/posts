@@ -35,11 +35,11 @@
       </div>
     </nav>
   {% if username %}
-    <h5 class="text-white me-2 ms-2 my-2">{{ username }}</h5>
+    <h5 class="text-white me-2 ms-2 my-2"><a href="/profile">{{ username }}</a></h5>
 
     <div class="container">
 
-      <form action="{{url_for('insert')}}" method="POST">
+      <form action="{{url_for('insert')}}" method="POST"  enctype="multipart/form-data">
 
         <div class="post">
           <div class="form-group mt-3 ms-3">
