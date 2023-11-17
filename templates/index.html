@@ -39,7 +39,7 @@
 
     <div class="container">
 
-      <form action="{{url_for('insert')}}" method="POST"  enctype="multipart/form-data">
+      <form action="{{url_for('insert')}}" method="POST" enctype="multipart/form-data">
 
         <div class="post">
           <div class="form-group mt-3 ms-3">
@@ -81,12 +81,13 @@
             <!-- {{item}} -->
             <div class="card" style="width: 66rem;">
               <div class="card-body">
-                  <img src="{{ url_for('static', filename='images/' + item.image) }}"class="card-img-top rounded mb-3">
+                <img src="{{ url_for('static', filename=item.image) }}" class="card-img-top rounded mb-3">
                   <h5 class="card-title">{{ username }}</h5>
                   <h6 class="card-subtitle mb-2 text-body-secondary">{{ item.caption }}</h6>
                   <a href="/update" class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#staticBackdrop{{item.id}}">Update Post</a>
                   <a href="/edit/{{item.id}}" class="btn btn-warning">Edit Post</a>
                   <a href="/delete/{{item.id}}" class="btn btn-danger" onclick="return confirm('Are You Sure to Delete This Post??')">Delete Post</a>
+                  <a href="#" class="float-end">Upvote</a>
               </div>
           </div>
 

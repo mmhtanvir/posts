@@ -43,9 +43,11 @@ def insert():
     if request.method == "POST":
 
         caption = request.form['caption']
-        image = request.form['image']
+        image = request.files['image']
+        image.save('static/images/' + image.filename)
         cur = mysql.connection.cursor()
-        cur.execute("INSERT INTO post (caption, image) VALUES ('%s', '%s')" % (caption, image),)
+        cur.execute("INSERT INTO post (caption, image) VALUES (%s, %s)", (caption, image))
+
         mysql.connection.commit()
 
         return redirect(url_for('index'))
