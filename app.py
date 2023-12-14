@@ -1,5 +1,5 @@
 from flask import Flask, url_for, render_template, redirect, request, session
-from flask_login import login_user, current_user, logout_user, login_required
+import datetime 
 from flask_mysqldb import MySQL
 import mysql.connector
 
@@ -7,15 +7,17 @@ app = Flask(__name__)
 
 app.secret_key = 'your-secret-key'
 
+
 app.config['MYSQL_HOST'] = 'localhost'
 app.config['MYSQL_USER'] = 'root'
 app.config['MYSQL_PASSWORD'] = ''
-app.config['MYSQL_DB'] = 'flask'
+app.config['MYSQL_DB'] = 'category'  
 # get data with db column name instead of index
-app.config["MYSQL_CURSORCLASS"] = "DictCursor" 
-
+app.config["MYSQL_CURSORCLASS"] = "DictCursor"
 
 mysql = MySQL(app)
+
+
 
 @app.route("/")
 def index():
@@ -36,21 +38,44 @@ def index():
 
     return render_template("index.html", post=data, username=username)
 
-
-
-@app.route('/insert', methods = ['GET', 'POST'])
+@app.route('/insert', methods=['GET', 'POST'])
 def insert():
     if request.method == "POST":
-
         caption = request.form['caption']
+        category = request.form['category']
         image = request.files['image']
         image.save('static/images/' + image.filename)
+        image_filename = image.filename
+
         cur = mysql.connection.cursor()
-        cur.execute("INSERT INTO post (caption, image) VALUES (%s, %s)", (caption, image))
 
-        mysql.connection.commit()
+        try:
+            if category == "international":
+                cur.execute("INSERT INTO international (caption, image) VALUES (%s, %s)", (caption, image_filename))
+            elif category == "national":
+                cur.execute("INSERT INTO national (caption, image) VALUES (%s, %s)", (caption, image_filename))
+            elif category == "sports":
+                cur.execute("INSERT INTO sports (caption, image) VALUES (%s, %s)", (caption, image_filename))
 
-        return redirect(url_for('index'))
+            # Commit changes to category-wise tables
+            mysql.connection.commit()
+
+            # Insert data into the main 'post' table
+            cur.execute("INSERT INTO post (caption, category, image) VALUES (%s, %s, %s)", (caption, category, image_filename))
+            # Commit changes to the main 'post' table
+            mysql.connection.commit()
+
+            return redirect(url_for('index'))
+
+        except Exception as e:
+            # Rollback changes if an error occurs
+            mysql.connection.rollback()
+            print(f"Error: {str(e)}")
+
+        finally:
+            cur.close()
+
+
     
 @app.route('/update',methods=['GET', 'POST'])
 def update():
@@ -87,6 +112,36 @@ def edit(id_data):
         mysql.connection.commit()
     return render_template('edit.html', item = item)
 
+@app.route('/category/<string:category>')
+def category(category):
+    item = {'key': 'value'}
+
+    cur = mysql.connection.cursor()
+
+    if category == "international":
+        cur.execute("SELECT * FROM international")
+        data = cur.fetchall()
+    elif category == "national":
+        cur.execute("SELECT * FROM national")
+        data = cur.fetchall()
+    elif category == "sports":
+        cur.execute("SELECT * FROM sports")
+        data = cur.fetchall()
+
+    cur.close()
+
+    if 'username' in session:
+        username = session['username']
+    else:
+        username = None
+
+    if 'username' not in session:
+        # User is not logged in, redirect them to the login page
+        return redirect(url_for('login'))
+
+    return render_template('category.html',item=item, username=username, category=category, data=data)
+
+
 @app.route('/profile', methods = ['GET', 'POST'])
 def profile():
     if 'username' not in session:
@@ -103,14 +158,24 @@ def login():
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
+        remember_me = request.form.get('remember_me')  # Check if "Remember Me" is checked
+
         sql = "SELECT id, username, password from users WHERE username = %s"
         cur = mysql.connection.cursor()
         cur.execute(sql, (username,))
         user = cur.fetchone()
         cur.close()
-        
+
         if user and password == user['password']:
             session['username'] = user['username']
+
+            # Set a long-term cookie if "Remember Me" is checked
+            if remember_me:
+                expire_date = datetime.datetime.now() + datetime.timedelta(days=30)
+                resp = make_response(redirect(url_for('index')))
+                resp.set_cookie('username', user['username'], expires=expire_date)
+                return resp
+
             return redirect(url_for('index'))
         else:
             return render_template('login.html', error="Invalid Username or Password")

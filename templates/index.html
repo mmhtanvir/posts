@@ -36,41 +36,50 @@
     </nav>
   {% if username %}
     <h5 class="text-white me-2 ms-2 my-2"><a href="/profile">{{ username }}</a></h5>
+    
 
     <div class="container">
 
       <form action="{{url_for('insert')}}" method="POST" enctype="multipart/form-data">
 
-        <div class="post">
-          <div class="form-group mt-3 ms-3">
-            <h3><textarea name="caption" id="post" cols="50" rows="10" class="pt-2 pb-2 pe-2" required></textarea></h3>
-         </div>
-  
-         <div class="form-group pic">
-            <main class="main_full">
-              <div class="box">
-                <div class="panel">
-                  <div class="button_outer">
-                    <div class="btn_upload">
-                      <input type="file" id="upload_file" name="image" required>
-                      Upload Image
+        <div class="pin">
+          <div class="post">
+            <div class="form-group mt-3 ms-3">
+              <h3><textarea name="caption" id="post" cols="50" rows="10" class="pt-2 pb-2 pe-2" required></textarea></h3>
+           </div>
+    
+           <div class="form-group pic">
+              <main class="main_full">
+                <div class="box">
+                  <div class="panel">
+                    <div class="button_outer">
+                      <div class="btn_upload">
+                        <input type="file" id="upload_file" name="image" required>
+                        Upload Image
+                      </div>
+                      <div class="processing_bar"></div>
+                      <div class="success_box"></div>
                     </div>
-                    <div class="processing_bar"></div>
-                    <div class="success_box"></div>
+                  </div>
+                  <div class="error_msg"></div>
+                  <div class="uploaded_file_view" id="uploaded_view">
+                    <span class="file_remove">X</span>
                   </div>
                 </div>
-                <div class="error_msg"></div>
-                <div class="uploaded_file_view" id="uploaded_view">
-                  <span class="file_remove">X</span>
-                </div>
-              </div>
-            </main>
-         </div>  
+              </main>
+              <label for="category" class="text-white">Category:</label>
+              <select id="category" name="category" required class="bg-secondary">
+                  <option value="national">National</option>
+                  <option value="international">International</option>
+                  <option value="sports">Sports</option>
+              </select>
+           </div>
+          </div>
+  
+          <div class="form-group">
+              <button class="btn btn-success float-end" type="submit">Post</button>
+          </div>
         </div>
-
-       <div class="form-group">
-          <button class="btn btn-success float-end" type="submit">Post</button>
-       </div>
 
       </form>
 
@@ -81,15 +90,15 @@
             <!-- {{item}} -->
             <div class="card" style="width: 66rem;">
               <div class="card-body">
-                <img src="{{ url_for('static', filename=item.image) }}" class="card-img-top rounded mb-3">
-                  <h5 class="card-title">{{ username }}</h5>
+                  <h5 class="card-title"><b>{{ username }}</b></h5>
+                  <img src="{{ url_for('static', filename=item.image) }}" class="card-img-top rounded mb-3">
                   <h6 class="card-subtitle mb-2 text-body-secondary">{{ item.caption }}</h6>
+                  <a href="/category/{{item.category}}" class="text-primary"><b>{{ item.category }}</b></a> <br> <br>
                   <a href="/update" class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#staticBackdrop{{item.id}}">Update Post</a>
                   <a href="/edit/{{item.id}}" class="btn btn-warning">Edit Post</a>
                   <a href="/delete/{{item.id}}" class="btn btn-danger" onclick="return confirm('Are You Sure to Delete This Post??')">Delete Post</a>
-                  <a href="#" class="float-end">Upvote</a>
               </div>
-          </div>
+            </div>
 
           </div>  
         </div>
